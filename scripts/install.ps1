@@ -1,9 +1,9 @@
-# Install the Realm of Echoes client on Windows.
-# Usage: irm https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.ps1 | iex
+# Install the Creeps client on Windows.
+# Usage: irm https://raw.githubusercontent.com/bragibytes/creeps/main/scripts/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
-$Repo = "bragibytes/space"
+$Repo = "bragibytes/creeps"
 $InstallDir = if ($env:REALM_INSTALL_DIR) { $env:REALM_INSTALL_DIR } else { "$env:USERPROFILE\.local\bin" }
 $Archive = "realm-x86_64-pc-windows-msvc.zip"
 

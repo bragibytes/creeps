@@ -13,7 +13,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "Realm — Screeps for Rust".into(),
+                title: "Creeps".into(),
                 resolution: (ROOM_SIZE as f32 * TILE_SIZE + 200.0, ROOM_SIZE as f32 * TILE_SIZE + 80.0).into(),
                 ..default()
             }),
@@ -225,7 +225,7 @@ fn update_hud(mut commands: Commands, sim: Res<SimResource>, hud: Query<Entity, 
         .unwrap_or(0);
 
     let text = format!(
-        "Realm — Screeps for Rust (local demo)\nRoom {} | Tick {} | Spawn energy {} | Creeps {}\nSandbox PvP only — no NPCs",
+        "Creeps (local demo)\nRoom {} | Tick {} | Spawn energy {} | Creeps {}\nSandbox PvP only — no NPCs",
         sim.active_room,
         sim.snapshot.tick,
         spawn_energy,

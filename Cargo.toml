@@ -14,7 +14,7 @@ members = [
 version = "0.2.0"
 edition = "2021"
 license = "MIT"
-description = "Realm of Echoes — a classic MMO text adventure"
+description = "Creeps — Screeps for Rust (sandbox colony MMO)"
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }

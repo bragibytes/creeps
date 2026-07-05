@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
-# Install the Realm of Echoes client (`realm` command).
-# Usage: curl -fsSL https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.sh | sh
+# Install the Creeps client (`realm` command; Bevy `realm-game` from releases when available).
+# Usage: curl -fsSL https://raw.githubusercontent.com/bragibytes/creeps/main/scripts/install.sh | sh
 
 set -e
 
-REPO="bragibytes/space"
+REPO="bragibytes/creeps"
 INSTALL_DIR="${REALM_INSTALL_DIR:-$HOME/.local/bin}"
 VERSION="${REALM_VERSION:-latest}"
 
@@ -17,7 +17,7 @@ main() {
   detect_target
   ensure_install_dir
 
-  echo "→ Installing Realm of Echoes client for ${TARGET}..."
+  echo "→ Installing Creeps client for ${TARGET}..."
 
   if try_download_release; then
     echo "✓ Installed to ${INSTALL_DIR}/realm"

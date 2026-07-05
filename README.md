@@ -1,20 +1,20 @@
-# Realm of Echoes
+# Creeps
 
-A classic MMO text adventure for the terminal. Multiple players share a persistent fantasy world — explore zones, fight monsters, complete quests, trade, party up, and duel.
+Screeps for Rust — a sandbox colony MMO. Claim rooms, program your creeps in Rust (WASM), defend your empire. PvP only; no NPCs.
 
 ## Play (install in one command)
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/bragibytes/creeps/main/scripts/install.sh | sh
 realm
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/bragibytes/creeps/main/scripts/install.ps1 | iex
 realm
 ```
 
@@ -105,7 +105,7 @@ Tag a release to build installable binaries for macOS, Linux, and Windows:
 git tag v0.2.0 && git push origin v0.2.0
 ```
 
-GitHub Actions uploads assets to [Releases](https://github.com/bragibytes/space/releases). The install scripts download from there automatically.
+GitHub Actions uploads assets to [Releases](https://github.com/bragibytes/creeps/releases). The install scripts download from there automatically.
 
 ## Deploy (Railway)
 

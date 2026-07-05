@@ -12,7 +12,7 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(
     name = "realm",
-    about = "Realm of Echoes — a classic MMO text adventure",
+    about = "Creeps — Screeps for Rust (legacy CLI client)",
     version,
     after_help = "Just run `realm` — it auto-connects to the live server.\nUse `realm --plain` if your terminal doesn't support full-screen mode."
 )]

@@ -58,7 +58,7 @@ pub async fn resolve_server_url(cli_override: Option<String>) -> Result<String> 
         .unwrap_or_else(|| DEFAULT_PRODUCTION_HOST.to_string());
 
     if let Ok(ws_url) = fetch_ws_url(&api_host).await {
-        eprintln!("→ Connecting to Realm of Echoes ({ws_url})");
+        eprintln!("→ Connecting to Creeps ({ws_url})");
         return Ok(ws_url);
     }
 

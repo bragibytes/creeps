@@ -665,7 +665,7 @@ pub async fn run(port: u16) -> Result<()> {
     let motd = std::env::var("MOTD").unwrap_or_else(|_| {
         std::fs::read_to_string(data_dir.join("motd.txt"))
             .map(|s| s.trim().to_string())
-            .unwrap_or_else(|_| "Welcome to the Realm of Echoes! Type help for commands.".into())
+            .unwrap_or_else(|_| "Welcome to Creeps! Type help for commands.".into())
     });
 
     init_database().await.context("init database")?;
@@ -710,7 +710,7 @@ pub async fn run(port: u16) -> Result<()> {
         });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    tracing::info!("Realm of Echoes server listening on ws://0.0.0.0:{port}/ws");
+    tracing::info!("Creeps server listening on ws://0.0.0.0:{port}/ws");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
