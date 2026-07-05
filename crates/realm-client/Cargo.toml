@@ -1,0 +1,23 @@
+[package]
+name = "realm-client"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "realm"
+path = "src/main.rs"
+
+[dependencies]
+realm-protocol = { workspace = true }
+realm-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+futures-util = { workspace = true }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+ratatui = "0.29"
+crossterm = "0.28"
+clap = { version = "4", features = ["derive", "env"] }
+dotenvy = { workspace = true }
+reqwest = { workspace = true }

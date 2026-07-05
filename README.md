@@ -2,20 +2,50 @@
 
 A classic MMO text adventure for the terminal. Multiple players share a persistent fantasy world — explore zones, fight monsters, complete quests, trade, party up, and duel.
 
-## Quick Start
+## Play (install in one command)
+
+**macOS / Linux**
 
 ```bash
-npm install
-
-# Terminal 1 — game server
-npm run server
-
-# Terminal 2+ — players (full-screen UI)
-npm run client
-npm run client:plain    # simple scrollback mode
+curl -fsSL https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.sh | sh
+realm
 ```
 
-Type `register` to create a character (**warrior**, **mage**, or **rogue**), or `login` to return.
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/bragibytes/space/main/scripts/install.ps1 | iex
+realm
+```
+
+That's it. The client auto-connects to the live server — no URLs, no config files.
+
+1. Run `realm`
+2. Type `register` to create a character (**warrior**, **mage**, or **rogue**), or `login` to return
+3. Type `help` in-game for commands
+
+**Tips**
+
+| Situation | Command |
+|-----------|---------|
+| Simple scrollback terminal | `realm --plain` |
+| Check version | `realm --version` |
+| Local dev server | `REALM_SERVER=ws://localhost:4242/ws realm` |
+
+Movement hotkeys: `n` `s` `e` `w` `l` `i` `h`
+
+---
+
+## Develop
+
+```bash
+cp .env.example .env   # DATABASE_URL for local server
+
+cargo run -p realm-server
+cargo run -p realm-client
+```
+
+Set `REALM_SERVER=ws://localhost:4242/ws` in `.env` when testing against a local server.
 
 ## Client UI
 
@@ -67,18 +97,26 @@ craft craft_leather      # wolf pelts → leather armor
 craft craft_iron_sword   # goblin ears → iron sword
 ```
 
-## Deploy (Railway)
+## Release client binaries
+
+Tag a release to build installable binaries for macOS, Linux, and Windows:
 
 ```bash
-# Set env vars in Railway dashboard:
-# PORT=4242
-# ADMIN_USERS=your_username
-
-# Players connect with:
-REALM_SERVER=wss://your-app.up.railway.app npm run client
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-Mount a **volume** at `/app/data` for persistent player saves.
+GitHub Actions uploads assets to [Releases](https://github.com/bragibytes/space/releases). The install scripts download from there automatically.
+
+## Deploy (Railway)
+
+1. Add **Postgres** plugin to the Railway project (`DATABASE_URL` is injected automatically).
+2. Deploy the server service (`railway.toml` builds `realm-server`).
+3. Set `ADMIN_USERS` in Railway variables.
+4. Redeploy so `/config` is live (client auto-discovers the public `wss://` URL).
+
+5. Run `cargo run -p realm-client` — it connects automatically.
+
+Player and guild data live in **Postgres**, not the filesystem. No volume required for saves.
 
 ## Admin
 
@@ -96,17 +134,29 @@ admin reload
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `4242` | Server WebSocket port |
-| `REALM_SERVER` | `ws://localhost:4242` | Client connection URL |
+| `REALM_SERVER` | `ws://localhost:4242/ws` | Client WebSocket URL (set in `.env`) |
+| `DATABASE_URL` | — | **Required** — Postgres connection string |
 | `ADMIN_USERS` | — | Comma-separated admin usernames |
 | `REALM_PLAIN` | — | Force plain client mode |
+| `WORLD_PATH` | `data/world.json` | World definition file |
 
 ## Development
 
 ```bash
-npm run build
-npm run dev:server     # hot reload
-npm run dev:client
+cargo build
+cargo run -p realm-server
+cargo run -p realm-client
+cargo test
 ```
 
-Player data saves to `data/players.json` (auto-backup every 30 min in `data/backups/`).
-World changes in `src/data/world.json` hot-reload on save.
+### Workspace layout
+
+```
+crates/
+  realm-protocol/   # shared WebSocket message types
+  realm-core/       # game logic (combat, quests, world, etc.)
+  realm-server/     # axum WebSocket server
+  realm-client/     # ratatui TUI + plain CLI client
+```
+
+Player and guild data persist in **Postgres**. Online sessions auto-save every 30 seconds while connected.

@@ -1,5 +1,4 @@
-node_modules/
-dist/
+target/
 data/players.json
 data/guilds.json
 data/backups/

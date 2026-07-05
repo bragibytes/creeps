@@ -1,7 +1,10 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build"
+buildCommand = "cargo build --release -p realm-server"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "./target/release/realm-server"
 restartPolicyType = "on_failure"
+
+# Add Railway Postgres plugin to the project — it injects DATABASE_URL automatically.
+# Optional: mount a volume only if you keep local files (world overrides, motd.txt).
