@@ -12,6 +12,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 bevy = { version = "0.16", default-features = true }
+bevy_egui = "0.36"
 dirs = "6"
 notify = "8"
 realm-sim = { workspace = true }

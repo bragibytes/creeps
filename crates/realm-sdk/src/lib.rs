@@ -1,11 +1,11 @@
 //! # Creeps SDK
 //!
-//! Write colony AI in `~/.creeps/colony/src/lib.rs`. The game client watches that
-//! directory and hot-reloads WASM on every save.
+//! Write colony AI in `~/realm-source/src/lib.rs` (or any directory you set in-game
+//! with F2). The client watches that folder and hot-reloads WASM on every save.
 //!
 //! ```text
 //! rustup target add wasm32-unknown-unknown
-//! code ~/.creeps/colony
+//! code ~/realm-source
 //! cargo run -p realm-game
 //! ```
 

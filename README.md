@@ -25,18 +25,20 @@ That's it. The client auto-connects to the live server — no URLs, no config fi
 Your colony AI lives in a normal Rust project on disk — edit in VS Code, Zed, or any editor:
 
 ```
-~/.creeps/colony/
+~/realm-source/
   Cargo.toml
   src/lib.rs      ← your code; save to auto-rebuild
 ```
 
-First run of `cargo run -p realm-game` creates this folder from the repo template. The game watches for saves, runs `cargo build --target wasm32-unknown-unknown`, and hot-reloads your WASM.
+First run of `cargo run -p realm-game` creates `~/realm-source/` from the repo template. The game watches for saves, runs `cargo build --target wasm32-unknown-unknown`, and hot-reloads your WASM.
 
-Override the path with `CREEPS_COLONY_DIR=/path/to/my/colony`.
+**Change the directory:** press **F2** in-game, or use the **Change…** button in the top bar. Your choice is saved for next launch.
+
+Override with env: `REALM_SOURCE_DIR=/any/path/you/want`
 
 ```bash
 rustup target add wasm32-unknown-unknown
-code ~/.creeps/colony   # open in your editor
+code ~/realm-source   # or any path you set in F2
 cargo run -p realm-game
 ```
 

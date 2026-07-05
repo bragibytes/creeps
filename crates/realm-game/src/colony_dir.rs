@@ -3,29 +3,75 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-const COLONY_DIR_NAME: &str = "colony";
+const DEFAULT_SOURCE_DIR: &str = "realm-source";
 
-/// Resolve `~/.creeps/colony` (override with `CREEPS_COLONY_DIR`).
-pub fn colony_dir() -> Result<PathBuf> {
+/// Default player source directory: `~/realm-source/`.
+pub fn default_source_dir() -> Result<PathBuf> {
+    let home = dirs::home_dir().context("home directory")?;
+    Ok(home.join(DEFAULT_SOURCE_DIR))
+}
+
+fn config_dir() -> Result<PathBuf> {
+    let dir = dirs::config_dir()
+        .context("config directory")?
+        .join("creeps");
+    fs::create_dir_all(&dir)?;
+    Ok(dir)
+}
+
+fn source_config_file() -> Result<PathBuf> {
+    Ok(config_dir()?.join("source-dir.txt"))
+}
+
+/// Last path chosen in the UI (persisted across sessions).
+pub fn load_saved_source_dir() -> Option<PathBuf> {
+    let path = source_config_file().ok()?;
+    let contents = fs::read_to_string(path).ok()?;
+    let trimmed = contents.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(trimmed))
+    }
+}
+
+pub fn save_source_dir(dir: &Path) -> Result<()> {
+    let file = source_config_file()?;
+    fs::write(file, dir.to_string_lossy().as_bytes())?;
+    Ok(())
+}
+
+/// Resolve source dir: env `REALM_SOURCE_DIR` → legacy `CREEPS_COLONY_DIR` → saved UI path → `~/realm-source/`.
+pub fn resolve_source_dir() -> Result<PathBuf> {
+    if let Ok(path) = std::env::var("REALM_SOURCE_DIR") {
+        return Ok(PathBuf::from(path));
+    }
     if let Ok(path) = std::env::var("CREEPS_COLONY_DIR") {
         return Ok(PathBuf::from(path));
     }
-    let home = dirs::home_dir().context("home directory")?;
-    Ok(home.join(".creeps").join(COLONY_DIR_NAME))
+    if let Some(path) = load_saved_source_dir() {
+        return Ok(path);
+    }
+    default_source_dir()
 }
 
-/// Create the colony project from `templates/colony` if it does not exist.
-pub fn ensure_colony_project() -> Result<PathBuf> {
-    let dir = colony_dir()?;
+/// Create a starter Rust project at `dir` if `Cargo.toml` is missing.
+pub fn ensure_colony_project_at(dir: &Path) -> Result<PathBuf> {
     if dir.join("Cargo.toml").exists() {
-        return Ok(dir);
+        return Ok(dir.to_path_buf());
     }
 
-    fs::create_dir_all(&dir)?;
+    fs::create_dir_all(dir)?;
     let template = template_dir()?;
-    copy_dir_recursive(&template, &dir)?;
-    patch_sdk_dependency(&dir, &template)?;
-    Ok(dir)
+    copy_dir_recursive(&template, dir)?;
+    patch_sdk_dependency(dir, &template)?;
+    Ok(dir.to_path_buf())
+}
+
+/// Back-compat wrapper used at startup.
+pub fn ensure_colony_project() -> Result<PathBuf> {
+    let dir = resolve_source_dir()?;
+    ensure_colony_project_at(&dir)
 }
 
 /// Prefer a path dependency when developing from the creeps repo checkout.
@@ -82,4 +128,17 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
 
 pub fn wasm_output_path(colony_dir: &Path) -> PathBuf {
     colony_dir.join("target/wasm32-unknown-unknown/release/colony.wasm")
+}
+
+pub fn expand_path(input: &str) -> PathBuf {
+    let trimmed = input.trim();
+    if trimmed == "~" {
+        return dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    }
+    if let Some(rest) = trimmed.strip_prefix("~/") {
+        if let Some(home) = dirs::home_dir() {
+            return home.join(rest);
+        }
+    }
+    PathBuf::from(trimmed)
 }

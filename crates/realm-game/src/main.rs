@@ -7,13 +7,17 @@
 
 mod colony_dir;
 mod code_watch;
+mod console;
+mod source_ui;
 mod wasm_runner;
 
 use bevy::prelude::*;
+use bevy_egui::EguiPrimaryContextPass;
 use std::sync::{Mutex, mpsc::Receiver};
 
 use code_watch::{start_watching, CodeEvent};
-use colony_dir::ensure_colony_project;
+use colony_dir::{ensure_colony_project_at, resolve_source_dir};
+use std::path::PathBuf;
 use realm_protocol::colony::ColonySnapshot;
 use realm_sim::{snapshot::world_snapshot, tick::tick_world, world::WorldState, ROOM_SIZE};
 use wasm_runner::WasmRunner;
@@ -37,13 +41,17 @@ fn main() {
         }))
         .init_resource::<SimResource>()
         .init_resource::<ColonyCode>()
-        .add_systems(Startup, (setup_camera, setup_grid, bootstrap_local_sim, init_colony_code))
+        .add_plugins(console::ConsolePlugin)
+        .init_resource::<source_ui::SourceSettingsUi>()
+        .add_systems(PreUpdate, source_ui::toggle_source_settings)
+        .add_systems(EguiPrimaryContextPass, source_ui::draw_source_settings)
+        .add_systems(Startup, (setup_camera, setup_grid, bootstrap_local_sim, init_colony_code, source_ui::init_source_settings))
         .add_systems(Update, (poll_code, advance_sim, sync_entities, update_hud))
         .run();
 }
 
 #[derive(Resource)]
-struct SimResource {
+pub(crate) struct SimResource {
     world: WorldState,
     snapshot: ColonySnapshot,
     active_room: String,
@@ -65,7 +73,7 @@ impl Default for SimResource {
 }
 
 #[derive(Resource)]
-struct ColonyCode {
+pub(crate) struct ColonyCode {
     event_rx: Mutex<Option<Receiver<CodeEvent>>>,
     runner: Option<WasmRunner>,
     colony_path: String,
@@ -139,28 +147,37 @@ fn bootstrap_local_sim(mut sim: ResMut<SimResource>) {
 }
 
 fn init_colony_code(mut code: ResMut<ColonyCode>) {
-    match ensure_colony_project() {
-        Ok(dir) => {
-            let display = dir.display().to_string();
-            code.colony_path = display.clone();
-            eprintln!("Colony code directory: {display}");
-            eprintln!("Open it in your editor — saves rebuild and reload automatically.");
-            match start_watching(dir) {
-                Ok(rx) => {
-                    *code.event_rx.lock().expect("event_rx") = Some(rx);
-                    code.status = "waiting for first build...".into();
-                }
-                Err(err) => {
-                    code.status = "file watch failed".into();
-                    code.last_error = Some(err.to_string());
-                    eprintln!("Code watch error: {err}");
-                }
-            }
+    match resolve_source_dir().and_then(|dir| attach_source_dir(&mut code, dir)) {
+        Ok(()) => {
+            eprintln!("Colony source: {}", code.colony_path);
+            eprintln!("Open in your editor — saves rebuild and reload. F2 to change directory.");
         }
         Err(err) => {
-            code.status = "colony dir setup failed".into();
+            code.status = "source dir setup failed".into();
             code.last_error = Some(err.to_string());
             eprintln!("Colony setup error: {err}");
+        }
+    }
+}
+
+/// Point the watcher at `path` (creates starter project if needed).
+pub(crate) fn attach_source_dir(code: &mut ColonyCode, path: PathBuf) -> anyhow::Result<()> {
+    let dir = ensure_colony_project_at(&path)?;
+    let display = dir.display().to_string();
+    code.colony_path = display.clone();
+    code.runner = None;
+    code.last_error = None;
+
+    match start_watching(dir) {
+        Ok(rx) => {
+            *code.event_rx.lock().expect("event_rx") = Some(rx);
+            code.status = "waiting for first build...".into();
+            Ok(())
+        }
+        Err(err) => {
+            code.status = "file watch failed".into();
+            code.last_error = Some(err.to_string());
+            Err(err)
         }
     }
 }
@@ -204,10 +221,24 @@ fn poll_code(mut code: ResMut<ColonyCode>) {
     }
 }
 
-fn advance_sim(time: Res<Time>, mut sim: ResMut<SimResource>, code: Res<ColonyCode>) {
+fn advance_sim(
+    time: Res<Time>,
+    mut sim: ResMut<SimResource>,
+    code: Res<ColonyCode>,
+    mut game_console: ResMut<console::GameConsole>,
+) {
+    let manual = game_console.pending_manual_tick;
+    game_console.pending_manual_tick = false;
+
+    if game_console.paused && !manual {
+        return;
+    }
+
     sim.tick_accum += time.delta_secs();
-    if sim.tick_accum >= TICK_INTERVAL_SECS {
-        sim.tick_accum -= TICK_INTERVAL_SECS;
+    if manual || sim.tick_accum >= TICK_INTERVAL_SECS {
+        if !manual {
+            sim.tick_accum -= TICK_INTERVAL_SECS;
+        }
 
         if let Some(runner) = &code.runner {
             if let Err(err) = runner.tick() {
@@ -350,7 +381,7 @@ fn update_hud(
         .unwrap_or_default();
 
     let text = format!(
-        "Creeps (local demo)\nRoom {} | Tick {} | Spawn energy {} | Creeps {}\nCode: {} | {}\nOpen in editor: {}{}",
+        "Creeps (local demo)\nRoom {} | Tick {} | Spawn energy {} | Creeps {}\nCode: {} | {}\nSource: {} (F2 to change){}",
         sim.active_room,
         sim.snapshot.tick,
         spawn_energy,
