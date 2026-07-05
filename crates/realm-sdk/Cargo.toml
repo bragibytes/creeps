@@ -1,0 +1,11 @@
+[package]
+name = "realm-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Player SDK for Realm colony AI (compile to wasm32-unknown-unknown)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]

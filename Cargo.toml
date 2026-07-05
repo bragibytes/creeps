@@ -3,8 +3,11 @@ resolver = "2"
 members = [
     "crates/realm-protocol",
     "crates/realm-core",
+    "crates/realm-sim",
+    "crates/realm-sdk",
     "crates/realm-server",
     "crates/realm-client",
+    "crates/realm-game",
 ]
 
 [workspace.package]
@@ -28,3 +31,5 @@ dotenvy = "0.15"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 realm-protocol = { path = "crates/realm-protocol" }
 realm-core = { path = "crates/realm-core" }
+realm-sim = { path = "crates/realm-sim" }
+realm-sdk = { path = "crates/realm-sdk" }

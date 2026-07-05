@@ -1,0 +1,15 @@
+[package]
+name = "realm-game"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Realm — Screeps-style colony game (Bevy client)"
+
+[[bin]]
+name = "realm-game"
+path = "src/main.rs"
+
+[dependencies]
+bevy = { version = "0.16", default-features = true }
+realm-sim = { workspace = true }
+realm-protocol = { workspace = true }

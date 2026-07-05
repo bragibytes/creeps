@@ -1,3 +1,10 @@
+pub mod colony;
+
+pub use colony::{
+    ColonyClientMessage, ColonyServerMessage, ColonySnapshot, CreepSnapshot,
+    PlayerColonySnapshot, RoomSnapshot, StructureSnapshot,
+};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
