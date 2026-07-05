@@ -1,0 +1,370 @@
+{
+  "rooms": [
+    {
+      "id": "eldermoor_square",
+      "name": "Eldermoor Town Square",
+      "description": "Cobblestones worn smooth by centuries of foot traffic. A fountain burbles at the center, and the smell of fresh bread drifts from the bakery to the east. Adventurers gather here before venturing into the wilds.",
+      "zone": "Eldermoor",
+      "mapX": 2,
+      "mapY": 2,
+      "exits": { "north": "eldermoor_gate", "east": "eldermoor_bakery", "west": "eldermoor_tavern", "south": "whispering_woods_entrance" },
+      "npcs": ["captain_aldric"]
+    },
+    {
+      "id": "eldermoor_gate",
+      "name": "North Gate of Eldermoor",
+      "description": "Massive oak doors reinforced with iron bands stand open. Guards in polished mail scan the roads north and east.",
+      "zone": "Eldermoor",
+      "mapX": 2,
+      "mapY": 1,
+      "exits": { "south": "eldermoor_square", "north": "whispering_woods_path", "east": "ironspine_foothills" },
+      "npcs": ["eldermoor_smith"]
+    },
+    {
+      "id": "eldermoor_bakery",
+      "name": "Marta's Bakery",
+      "description": "Warmth and the scent of cinnamon rolls fill this cozy shop. Shelves display loaves of crusty bread and pastries glistening with honey.",
+      "zone": "Eldermoor",
+      "mapX": 3,
+      "mapY": 2,
+      "exits": { "west": "eldermoor_square" },
+      "npcs": ["marta_baker"],
+      "items": ["health_potion"]
+    },
+    {
+      "id": "eldermoor_tavern",
+      "name": "The Gilded Tankard",
+      "description": "Dim lantern light, rough-hewn tables, and the clink of tankards. Bards swap tales of distant dungeons while mercenaries sharpen their blades.",
+      "zone": "Eldermoor",
+      "mapX": 1,
+      "mapY": 2,
+      "exits": { "east": "eldermoor_square" },
+      "npcs": ["innkeeper_bram"]
+    },
+    {
+      "id": "whispering_woods_entrance",
+      "name": "Edge of the Whispering Woods",
+      "description": "Ancient oaks loom overhead, their leaves murmuring secrets in the wind. The town lies north; deeper woods beckon south.",
+      "zone": "Whispering Woods",
+      "mapX": 2,
+      "mapY": 3,
+      "exits": { "north": "eldermoor_square", "south": "whispering_woods_deep", "east": "whispering_woods_clearing" },
+      "mobs": ["goblin_scout"]
+    },
+    {
+      "id": "whispering_woods_path",
+      "name": "Forest Path",
+      "description": "A narrow trail winds between moss-covered boulders. Ferns brush your ankles as birds call from the canopy above.",
+      "zone": "Whispering Woods",
+      "mapX": 2,
+      "mapY": 4,
+      "exits": { "south": "eldermoor_gate", "north": "whispering_woods_deep" },
+      "mobs": ["goblin_scout", "forest_wolf"]
+    },
+    {
+      "id": "whispering_woods_deep",
+      "name": "Heart of the Whispering Woods",
+      "description": "Sunlight barely penetrates the dense canopy. Gnarled roots twist across the forest floor. Something watches from the shadows.",
+      "zone": "Whispering Woods",
+      "mapX": 2,
+      "mapY": 5,
+      "exits": { "north": "whispering_woods_entrance", "south": "goblin_camp", "west": "whispering_woods_path" },
+      "mobs": ["forest_wolf", "goblin_warrior"]
+    },
+    {
+      "id": "whispering_woods_clearing",
+      "name": "Moonlit Clearing",
+      "description": "A circle of pale stones stands in a sun-dappled clearing. Wildflowers bloom between the ancient monoliths.",
+      "zone": "Whispering Woods",
+      "mapX": 3,
+      "mapY": 3,
+      "exits": { "west": "whispering_woods_entrance", "south": "abandoned_shrine" },
+      "items": ["health_potion"]
+    },
+    {
+      "id": "goblin_camp",
+      "name": "Goblin Camp",
+      "description": "Crude tents of stitched hide surround a crackling fire. Weapons and stolen goods are piled haphazardly. The goblin chief's throne of bones dominates the clearing.",
+      "zone": "Whispering Woods",
+      "mapX": 2,
+      "mapY": 6,
+      "exits": { "north": "whispering_woods_deep" },
+      "mobs": ["goblin_warrior", "goblin_chief"],
+      "items": ["iron_sword"]
+    },
+    {
+      "id": "abandoned_shrine",
+      "name": "Abandoned Shrine",
+      "description": "Crumbling stone pillars frame a moss-choked altar. Faded murals depict heroes of a forgotten age. A locked iron door is set into the hillside.",
+      "zone": "Whispering Woods",
+      "mapX": 3,
+      "mapY": 4,
+      "exits": { "north": "whispering_woods_clearing", "down": "shrine_vault" },
+      "items": ["ancient_key"]
+    },
+    {
+      "id": "shrine_vault",
+      "name": "Shrine Vault",
+      "description": "Torchlight flickers off walls lined with dusty reliquaries. A spectral guardian materializes from the darkness.",
+      "zone": "Whispering Woods",
+      "mapX": 3,
+      "mapY": 5,
+      "exits": { "up": "abandoned_shrine" },
+      "mobs": ["shade_sentinel"]
+    },
+    {
+      "id": "ironspine_foothills",
+      "name": "Ironspine Foothills",
+      "description": "Wind howls across scree slopes. The Eldermoor gate lies west; a rocky trail climbs north into the Ironspine Mountains.",
+      "zone": "Ironspine Mountains",
+      "mapX": 3,
+      "mapY": 1,
+      "exits": { "west": "eldermoor_gate", "north": "ironspine_trail", "east": "bandit_hideout" },
+      "mobs": ["hill_bandit"]
+    },
+    {
+      "id": "ironspine_trail",
+      "name": "Rocky Mountain Trail",
+      "description": "A treacherous path hugs the cliff face. Eagles circle overhead. The air grows thin and cold.",
+      "zone": "Ironspine Mountains",
+      "mapX": 3,
+      "mapY": 0,
+      "exits": { "south": "ironspine_foothills", "north": "troll_bridge" },
+      "mobs": ["hill_bandit", "mountain_wolf"]
+    },
+    {
+      "id": "bandit_hideout",
+      "name": "Bandit Hideout",
+      "description": "Smoke rises from a concealed cave mouth. Rough voices argue over plunder within.",
+      "zone": "Ironspine Mountains",
+      "mapX": 4,
+      "mapY": 1,
+      "exits": { "west": "ironspine_foothills" },
+      "mobs": ["hill_bandit", "bandit_chief"]
+    },
+    {
+      "id": "troll_bridge",
+      "name": "Bridge of Ash",
+      "description": "A rotting rope bridge spans a chasm reeking of sulfur. Something massive stirs in the cavern beyond.",
+      "zone": "Ironspine Mountains",
+      "mapX": 3,
+      "mapY": -1,
+      "exits": { "south": "ironspine_trail", "north": "crystal_cavern" },
+      "mobs": ["cave_troll"]
+    },
+    {
+      "id": "crystal_cavern",
+      "name": "Crystal Cavern",
+      "description": "Luminescent crystals jut from every surface. Arcane energy crackles in the air. This place feels ancient and dangerous.",
+      "zone": "Ironspine Mountains",
+      "mapX": 3,
+      "mapY": -2,
+      "exits": { "south": "troll_bridge" },
+      "mobs": ["crystal_golem"],
+      "items": ["mana_potion", "chainmail"]
+    }
+  ],
+  "mobs": [
+    {
+      "id": "goblin_scout",
+      "name": "Goblin Scout",
+      "description": "A wiry green creature with beady red eyes, clutching a crude dagger.",
+      "level": 1,
+      "hp": 30,
+      "attack": 6,
+      "defense": 2,
+      "xp": 25,
+      "gold": { "min": 2, "max": 8 },
+      "loot": [{ "itemId": "goblin_ear", "chance": 0.6 }],
+      "hostile": true,
+      "respawnSeconds": 30
+    },
+    {
+      "id": "forest_wolf",
+      "name": "Forest Wolf",
+      "description": "A lean predator with matted grey fur and yellow fangs bared in a snarl.",
+      "level": 2,
+      "hp": 45,
+      "attack": 10,
+      "defense": 3,
+      "xp": 40,
+      "gold": { "min": 0, "max": 3 },
+      "loot": [{ "itemId": "wolf_pelt", "chance": 0.5 }],
+      "hostile": true,
+      "respawnSeconds": 45
+    },
+    {
+      "id": "goblin_warrior",
+      "name": "Goblin Warrior",
+      "description": "A muscular goblin in scavenged plate armor, wielding a notched axe.",
+      "level": 3,
+      "hp": 65,
+      "attack": 14,
+      "defense": 6,
+      "xp": 70,
+      "gold": { "min": 5, "max": 15 },
+      "loot": [{ "itemId": "goblin_ear", "chance": 0.8 }, { "itemId": "rusty_sword", "chance": 0.2 }],
+      "hostile": true,
+      "respawnSeconds": 60
+    },
+    {
+      "id": "goblin_chief",
+      "name": "Goblin Chief Grak",
+      "description": "A hulking goblin lord crowned with a jagged iron circlet, scars mapping a violent reign.",
+      "level": 5,
+      "hp": 120,
+      "attack": 20,
+      "defense": 10,
+      "xp": 200,
+      "gold": { "min": 20, "max": 50 },
+      "loot": [{ "itemId": "iron_sword", "chance": 0.4 }, { "itemId": "chainmail", "chance": 0.25 }],
+      "hostile": true,
+      "respawnSeconds": 300
+    },
+    {
+      "id": "shade_sentinel",
+      "name": "Shade Sentinel",
+      "description": "A translucent wraith bound to guard the vault, its hollow eyes burning with cold light.",
+      "level": 6,
+      "hp": 90,
+      "attack": 22,
+      "defense": 8,
+      "xp": 250,
+      "gold": { "min": 10, "max": 30 },
+      "loot": [{ "itemId": "mana_potion", "chance": 0.5 }],
+      "hostile": true,
+      "respawnSeconds": 600
+    },
+    {
+      "id": "hill_bandit",
+      "name": "Hill Bandit",
+      "description": "A scarred outlaw in furs, bow drawn and greed in their eyes.",
+      "level": 4,
+      "hp": 55,
+      "attack": 16,
+      "defense": 5,
+      "xp": 80,
+      "gold": { "min": 8, "max": 20 },
+      "loot": [{ "itemId": "health_potion", "chance": 0.3 }],
+      "hostile": true,
+      "respawnSeconds": 60
+    },
+    {
+      "id": "mountain_wolf",
+      "name": "Mountain Wolf",
+      "description": "A thick-furred predator adapted to thin mountain air.",
+      "level": 4,
+      "hp": 60,
+      "attack": 15,
+      "defense": 6,
+      "xp": 75,
+      "gold": { "min": 2, "max": 8 },
+      "loot": [{ "itemId": "wolf_pelt", "chance": 0.6 }],
+      "hostile": true,
+      "respawnSeconds": 75
+    },
+    {
+      "id": "bandit_chief",
+      "name": "Bandit Chief Vex",
+      "description": "A cunning rogue lord with twin daggers and a cruel smirk.",
+      "level": 7,
+      "hp": 110,
+      "attack": 22,
+      "defense": 9,
+      "xp": 220,
+      "gold": { "min": 25, "max": 60 },
+      "loot": [{ "itemId": "iron_sword", "chance": 0.5 }, { "itemId": "health_potion", "chance": 0.4 }],
+      "hostile": true,
+      "respawnSeconds": 300
+    },
+    {
+      "id": "cave_troll",
+      "name": "Cave Troll",
+      "description": "A lumbering brute with stone-grey skin and fists like boulders.",
+      "level": 8,
+      "hp": 160,
+      "attack": 26,
+      "defense": 14,
+      "xp": 300,
+      "gold": { "min": 15, "max": 40 },
+      "loot": [{ "itemId": "chainmail", "chance": 0.3 }],
+      "hostile": true,
+      "respawnSeconds": 420
+    },
+    {
+      "id": "crystal_golem",
+      "name": "Crystal Golem",
+      "description": "A towering construct of living crystal, humming with arcane power.",
+      "level": 9,
+      "hp": 140,
+      "attack": 28,
+      "defense": 16,
+      "xp": 400,
+      "gold": { "min": 30, "max": 70 },
+      "loot": [{ "itemId": "mana_potion", "chance": 0.7 }, { "itemId": "chainmail", "chance": 0.2 }],
+      "hostile": true,
+      "respawnSeconds": 600
+    }
+  ],
+  "npcs": [
+    {
+      "id": "captain_aldric",
+      "name": "Captain Aldric",
+      "description": "A grizzled veteran in battered plate, his cape bearing the crest of Eldermoor.",
+      "greeting": "Hail, adventurer. Goblins plague the Whispering Woods — bring me proof of their demise and I'll reward you handsomely.",
+      "questId": "goblin_menace"
+    },
+    {
+      "id": "marta_baker",
+      "name": "Marta the Baker",
+      "description": "A stout woman with flour-dusted apron and a warm, welcoming smile.",
+      "greeting": "Welcome! Fresh bread and potions for weary travelers. Type 'buy health_potion' to purchase.",
+      "shop": [{ "itemId": "health_potion", "price": 15 }, { "itemId": "mana_potion", "price": 15 }]
+    },
+    {
+      "id": "innkeeper_bram",
+      "name": "Innkeeper Bram",
+      "description": "A broad-shouldered man polishing a tankard, his laugh echoing off the rafters.",
+      "greeting": "Pull up a chair, friend. Rest here and you'll recover HP over time. Type 'rest' to sit awhile."
+    },
+    {
+      "id": "eldermoor_smith",
+      "name": "Greta the Smith",
+      "description": "A muscular smith with soot-streaked arms, hammer ringing on the anvil.",
+      "greeting": "Need gear forged? I craft leather armor from wolf pelts and iron swords from goblin trophies. Type 'craft' to see recipes.",
+      "crafts": ["craft_leather", "craft_iron_sword"]
+    }
+  ],
+  "quests": [
+    {
+      "id": "goblin_menace",
+      "name": "The Goblin Menace",
+      "description": "Captain Aldric wants proof that the goblin threat in the Whispering Woods is being dealt with.",
+      "giverNpc": "captain_aldric",
+      "objectives": [
+        { "type": "collect", "target": "goblin_ear", "count": 5, "description": "Collect 5 Goblin Ears" }
+      ],
+      "rewards": { "xp": 150, "gold": 50, "items": ["leather_armor"] }
+    },
+    {
+      "id": "wolf_hunt",
+      "name": "Wolf Hunt",
+      "description": "The forest wolves grow bold. Thin their numbers and bring back pelts.",
+      "giverNpc": "captain_aldric",
+      "objectives": [
+        { "type": "collect", "target": "wolf_pelt", "count": 3, "description": "Collect 3 Wolf Pelts" }
+      ],
+      "rewards": { "xp": 100, "gold": 30 }
+    },
+    {
+      "id": "mountain_menace",
+      "name": "Mountain Menace",
+      "description": "Bandits harass travelers in the Ironspine foothills. Captain Aldric wants their leader dealt with.",
+      "giverNpc": "captain_aldric",
+      "objectives": [
+        { "type": "kill", "target": "bandit_chief", "count": 1, "description": "Slay Bandit Chief Vex" }
+      ],
+      "rewards": { "xp": 300, "gold": 100, "items": ["iron_sword"] }
+    }
+  ]
+}
