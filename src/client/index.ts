@@ -118,6 +118,18 @@ function handleMessage(msg: ServerMessage): void {
       ui.flash(msg.color);
       break;
 
+    case 'bell':
+      ui.bell();
+      break;
+
+    case 'ticker':
+      ui.showTicker(msg.text);
+      break;
+
+    case 'motd':
+      ui.showMotd(msg.text);
+      break;
+
     case 'error':
       ui.showError(msg.text);
       break;

@@ -1,5 +1,7 @@
 import type { ClassName } from '../protocol/messages.js';
 
+export type LootRarity = 'common' | 'uncommon' | 'rare' | 'epic';
+
 export interface ItemTemplate {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface ItemTemplate {
   defense?: number;
   heal?: number;
   value: number;
+  rarity?: LootRarity;
 }
 
 export interface MobTemplate {
@@ -25,6 +28,8 @@ export interface MobTemplate {
   loot?: { itemId: string; chance: number }[];
   hostile: boolean;
   respawnSeconds: number;
+  elite?: boolean;
+  boss?: boolean;
 }
 
 export interface NpcTemplate {
@@ -88,7 +93,21 @@ export const DIRECTION_ALIASES: Record<string, Direction> = {
 
 export const HOTKEY_COMMANDS: Record<string, string> = {
   n: 'north', s: 'south', e: 'east', w: 'west', u: 'up', d: 'down',
-  l: 'look', i: 'inventory', h: 'help',
+  l: 'look', i: 'inventory', h: 'help', g: 'global',
+};
+
+export const RARITY_COLORS: Record<LootRarity, string> = {
+  common: 'white',
+  uncommon: 'green',
+  rare: 'blue',
+  epic: 'magenta',
+};
+
+export const LOCKED_EXITS: Record<string, { item: string; message: string }> = {
+  crypt_stairs: {
+    item: 'ancient_key',
+    message: 'The iron door is locked. You need the Ancient Key.',
+  },
 };
 
 export interface ClassStats {
@@ -167,6 +186,7 @@ export const ZONE_ART: Record<string, string> = {
   Eldermoor: '  🏰⚔️🏰  ',
   'Whispering Woods': '  🌲🌳🌲  ',
   'Ironspine Mountains': '  ⛰️🦅⛰️  ',
+  'Crypt of Ash': '  💀⚰️💀  ',
 };
 
 export const CRAFT_RECIPES: CraftRecipe[] = [

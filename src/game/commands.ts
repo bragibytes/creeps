@@ -26,8 +26,11 @@ import {
   handleDuelCommand,
   handleCraftCommand,
   handleAdminCommand,
+  handleGuildCommand,
 } from './social.js';
-import { CLASSES, DIRECTION_ALIASES, ZONE_ART } from './types.js';
+import { checkAchievements, formatAchievements } from './achievement-service.js';
+import { getAllPlayers } from '../db/database.js';
+import { CLASSES, DIRECTION_ALIASES, ZONE_ART, LOCKED_EXITS } from './types.js';
 import type { LiveMob, World } from './world.js';
 import type { ServerMessage } from '../protocol/messages.js';
 
@@ -35,6 +38,9 @@ export type BroadcastFn = (roomId: string, msg: ServerMessage, exclude?: string)
 export type SendFn = (player: PlayerSession, msg: ServerMessage) => void;
 export type RoomNotifyFn = (roomId: string, text: string, exclude?: string) => void;
 export type FlashFn = (player: PlayerSession, color: 'red' | 'yellow' | 'green') => void;
+export type GlobalBroadcastFn = (text: string, style?: import('../protocol/messages.js').OutputStyle) => void;
+export type TickerFn = (text: string) => void;
+export type GuildChatFn = (guildId: string, text: string) => void;
 
 export class CommandHandler {
   constructor(
@@ -48,6 +54,9 @@ export class CommandHandler {
     private roomNotify: RoomNotifyFn,
     private broadcastOnline: () => void,
     private flash: FlashFn,
+    private globalBroadcast: GlobalBroadcastFn,
+    private ticker: TickerFn,
+    private guildChat: GuildChatFn,
   ) {}
 
   handle(player: PlayerSession, input: string): void {
@@ -73,7 +82,17 @@ export class CommandHandler {
       u: () => this.move(player, 'up'),
       d: () => this.move(player, 'down'),
       say: () => this.say(player, argStr),
+      global: () => this.global(player, argStr),
+      g: () => this.global(player, argStr),
+      emote: () => this.emote(player, argStr),
+      me: () => this.emote(player, argStr),
       yell: () => this.yell(player, argStr),
+      guild: () => handleGuildCommand(player, args, this.players, this.send, (id, t) => this.guildChat(id, t)),
+      search: () => this.search(player),
+      achievements: () => this.achievements(player),
+      ach: () => this.achievements(player),
+      leaderboard: () => this.leaderboard(player),
+      lb: () => this.leaderboard(player),
       whisper: () => this.whisper(player, args[0], args.slice(1).join(' ')),
       tell: () => this.whisper(player, args[0], args.slice(1).join(' ')),
       attack: () => this.attack(player, argStr),
@@ -129,6 +148,11 @@ export class CommandHandler {
 
   private finalize(player: PlayerSession): void {
     syncPlayerMeta(player, this.party, this.duel, this.players);
+    checkAchievements(player, this.send, {
+      room: player.roomId,
+      gold: player.data.gold,
+      level: player.data.level,
+    });
   }
 
   private partyPeersInRoom(player: PlayerSession): PlayerSession[] {
@@ -146,7 +170,8 @@ export class CommandHandler {
 
     for (const mob of room.mobs) {
       const tmpl = this.world.mobs.get(mob.templateId)!;
-      entities.push(`${tmpl.name} (Lv.${tmpl.level}) [hostile]`);
+      const tags = [mob.elite || tmpl.elite ? 'ELITE' : '', tmpl.boss ? 'BOSS' : ''].filter(Boolean).join(' ');
+      entities.push(`${tmpl.name} (Lv.${tmpl.level})${tags ? ` [${tags}]` : ''} [hostile]`);
     }
     for (const npcId of room.npcs) {
       const npc = this.world.npcs.get(npcId)!;
@@ -154,7 +179,8 @@ export class CommandHandler {
     }
     for (const p of this.players.values()) {
       if (p.roomId === player.roomId && p.username !== player.username) {
-        entities.push(`${p.username} (Lv.${p.data.level} ${CLASSES[p.data.className].displayName})`);
+        const title = p.data.title ? ` "${p.data.title}"` : '';
+        entities.push(`${p.username}${title} (Lv.${p.data.level} ${CLASSES[p.data.className].displayName})`);
       }
     }
     for (const itemId of room.items) {
@@ -186,6 +212,12 @@ export class CommandHandler {
     const destId = room.template.exits[direction as keyof typeof room.template.exits];
     if (!destId) {
       this.send(player, { type: 'output', text: `You cannot go ${direction}.`, style: 'system' });
+      return;
+    }
+
+    const lock = LOCKED_EXITS[destId];
+    if (lock && player.countItem(lock.item) < 1) {
+      this.send(player, { type: 'output', text: lock.message, style: 'system' });
       return;
     }
 
@@ -309,6 +341,8 @@ export class CommandHandler {
       this.send(winner, { type: 'output', text: msg, style: 'combat' });
     }
     this.roomNotify(roomId, `${winner.username} has slain ${loser.username} in PvP!`);
+    this.ticker(`${winner.username} slays ${loser.username}`);
+    checkAchievements(winner, this.send, { duelWin: true });
     this.send(winner, { type: 'stats', player: winner.toSnapshot(this.world) });
   }
 
@@ -408,7 +442,12 @@ export class CommandHandler {
 
     const result = playerAttack(player, mob, this.world, this.partyPeersInRoom(player));
     for (const msg of result.messages) {
-      this.send(player, { type: 'output', text: msg, style: 'combat' });
+      const style = msg.includes('LEVEL UP') ? 'quest' : 'combat';
+      this.send(player, { type: 'output', text: msg, style });
+      if (msg.includes('LEVEL UP')) {
+        this.send(player, { type: 'bell' });
+        this.flash(player, 'green');
+      }
     }
     this.flash(player, 'red');
     for (const peer of this.partyPeersInRoom(player)) {
@@ -423,9 +462,66 @@ export class CommandHandler {
       this.look(player);
     } else if (result.mobKilled) {
       this.roomNotify(player.roomId, `${player.username} slays ${tmpl.name}!`);
+      this.ticker(`${player.username} slays ${tmpl.name}`);
+      checkAchievements(player, this.send, { kill: mob.templateId });
     }
 
     this.send(player, { type: 'stats', player: player.toSnapshot(this.world) });
+  }
+
+  private global(player: PlayerSession, message: string): void {
+    if (!message) {
+      this.send(player, { type: 'output', text: 'Global what? Usage: global <message>', style: 'system' });
+      return;
+    }
+    this.globalBroadcast(`[Global] ${player.username}: ${message}`, 'global');
+  }
+
+  private emote(player: PlayerSession, action: string): void {
+    if (!action) {
+      this.send(player, { type: 'output', text: 'Emote what? Usage: emote <action>', style: 'system' });
+      return;
+    }
+    for (const p of this.players.values()) {
+      if (p.roomId === player.roomId) {
+        this.send(p, { type: 'output', text: `* ${player.username} ${action}`, style: 'emote' });
+      }
+    }
+  }
+
+  private search(player: PlayerSession): void {
+    const hints: Record<string, string> = {
+      abandoned_shrine: 'You examine the iron door. It bears a keyhole shaped like a serpent. Perhaps the Ancient Key fits.',
+      eldermoor_tavern: 'You kick over a floorboard and find 5 gold tucked beneath!',
+      moonlit_clearing: 'Strange runes on the stones pulse faintly. The woods feel watchful.',
+      crypt_tomb: 'The Lich King\'s throne is carved from a single piece of obsidian.',
+    };
+    const hint = hints[player.roomId];
+    if (hint) {
+      this.send(player, { type: 'output', text: hint, style: 'system' });
+      if (player.roomId === 'eldermoor_tavern' && !player.searchedRooms.has('eldermoor_tavern')) {
+        player.searchedRooms.add('eldermoor_tavern');
+        player.data.gold += 5;
+        this.send(player, { type: 'output', text: 'You found 5 gold!', style: 'loot' });
+      }
+    } else {
+      this.send(player, { type: 'output', text: 'You find nothing unusual.', style: 'system' });
+    }
+  }
+
+  private achievements(player: PlayerSession): void {
+    this.send(player, { type: 'output', text: formatAchievements(player), style: 'quest' });
+  }
+
+  private leaderboard(player: PlayerSession): void {
+    const all = getAllPlayers()
+      .sort((a, b) => b.level - a.level || b.kills - a.kills)
+      .slice(0, 10);
+    const lines = ['-- Leaderboard (Level) --'];
+    all.forEach((p, i) => {
+      lines.push(`  ${i + 1}. ${p.username} — Lv.${p.level} (${p.kills} kills)`);
+    });
+    this.send(player, { type: 'output', text: lines.join('\n'), style: 'system' });
   }
 
   private useAbility(player: PlayerSession, slot: 1 | 2): void {
@@ -837,9 +933,10 @@ Combat:       attack <target>, ability, special (Lv.${cls.ability2Level})
               PvP in wilds; duel <player> for consented fights
 Items:        get/take <item>, drop <item>, inventory (i)
               equip <item>, use <item>, buy <item>, craft <recipe>
-Social:       say/yell/whisper, party invite/join/leave/say, p <msg>
-              trade <player>, trade offer/confirm/cancel
+Social:       say/yell/whisper/global/emote, party, guild, trade
+              guild create/invite/say | p <msg> | g <msg>
 Quests:       talk <npc>, accept <quest_id>, complete <quest_id>
+Explore:      search (find secrets), achievements, leaderboard
 Info:         stats, who, help, rest, quit
 Hotkeys:      n/s/e/w move, l look, i inv, h help
 

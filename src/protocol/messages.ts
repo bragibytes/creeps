@@ -11,11 +11,14 @@ export type ServerMessage =
   | { type: 'stats'; player: PlayerSnapshot }
   | { type: 'online'; players: OnlinePlayer[] }
   | { type: 'flash'; color: 'red' | 'yellow' | 'green' }
+  | { type: 'bell' }
+  | { type: 'ticker'; text: string }
+  | { type: 'motd'; text: string }
   | { type: 'combat'; state: CombatSnapshot }
   | { type: 'error'; text: string }
   | { type: 'disconnect'; reason: string };
 
-export type OutputStyle = 'normal' | 'system' | 'combat' | 'chat' | 'quest' | 'loot' | 'death' | 'party' | 'trade';
+export type OutputStyle = 'normal' | 'system' | 'combat' | 'chat' | 'quest' | 'loot' | 'death' | 'party' | 'trade' | 'global' | 'emote' | 'epic';
 
 export type ClassName = 'warrior' | 'mage' | 'rogue';
 
@@ -36,6 +39,8 @@ export interface PlayerSnapshot {
   inCombat?: boolean;
   partyLeader?: string;
   inDuel?: boolean;
+  title?: string;
+  guildName?: string;
 }
 
 export interface OnlinePlayer {

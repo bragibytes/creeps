@@ -20,6 +20,12 @@ export interface StoredPlayer {
   inventory: string[];
   equipment: { weapon?: string; armor?: string };
   quests: QuestProgress[];
+  achievements: string[];
+  title: string | null;
+  kills: number;
+  deaths: number;
+  guildId: string | null;
+  goblinKills: number;
 }
 
 interface PlayerStore {
@@ -46,8 +52,25 @@ function persist(): void {
   writeFileSync(STORE_PATH, JSON.stringify(store, null, 2));
 }
 
+function normalizePlayer(player: StoredPlayer): StoredPlayer {
+  return {
+    ...player,
+    achievements: player.achievements ?? [],
+    title: player.title ?? null,
+    kills: player.kills ?? 0,
+    deaths: player.deaths ?? 0,
+    guildId: player.guildId ?? null,
+    goblinKills: player.goblinKills ?? 0,
+  };
+}
+
 export function findPlayer(username: string): StoredPlayer | null {
-  return store.players.find((p) => p.username.toLowerCase() === username.toLowerCase()) ?? null;
+  const p = store.players.find((pl) => pl.username.toLowerCase() === username.toLowerCase());
+  return p ? normalizePlayer(p) : null;
+}
+
+export function getAllPlayers(): StoredPlayer[] {
+  return store.players.map(normalizePlayer);
 }
 
 export function createPlayer(
@@ -72,6 +95,12 @@ export function createPlayer(
     inventory: [],
     equipment: {},
     quests: [],
+    achievements: [],
+    title: null,
+    kills: 0,
+    deaths: 0,
+    guildId: null,
+    goblinKills: 0,
   };
   store.players.push(player);
   persist();

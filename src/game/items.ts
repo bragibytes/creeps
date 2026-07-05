@@ -9,6 +9,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     slot: 'weapon',
     attack: 5,
     value: 10,
+    rarity: 'common',
   },
   iron_sword: {
     id: 'iron_sword',
@@ -18,6 +19,17 @@ export const ITEMS: Record<string, ItemTemplate> = {
     slot: 'weapon',
     attack: 12,
     value: 50,
+    rarity: 'uncommon',
+  },
+  shadow_dagger: {
+    id: 'shadow_dagger',
+    name: 'Shadow Dagger',
+    description: 'A blade that drinks the light, favored by assassins.',
+    type: 'weapon',
+    slot: 'weapon',
+    attack: 18,
+    value: 150,
+    rarity: 'rare',
   },
   leather_armor: {
     id: 'leather_armor',
@@ -27,6 +39,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     slot: 'armor',
     defense: 4,
     value: 30,
+    rarity: 'common',
   },
   chainmail: {
     id: 'chainmail',
@@ -36,6 +49,17 @@ export const ITEMS: Record<string, ItemTemplate> = {
     slot: 'armor',
     defense: 10,
     value: 120,
+    rarity: 'uncommon',
+  },
+  plate_of_the_lich: {
+    id: 'plate_of_the_lich',
+    name: 'Plate of the Lich',
+    description: 'Dark plate humming with necromantic wards.',
+    type: 'armor',
+    slot: 'armor',
+    defense: 18,
+    value: 400,
+    rarity: 'epic',
   },
   health_potion: {
     id: 'health_potion',
@@ -44,6 +68,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     type: 'consumable',
     heal: 40,
     value: 15,
+    rarity: 'common',
   },
   mana_potion: {
     id: 'mana_potion',
@@ -52,6 +77,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     type: 'consumable',
     heal: 0,
     value: 15,
+    rarity: 'common',
   },
   goblin_ear: {
     id: 'goblin_ear',
@@ -59,6 +85,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     description: 'A grisly trophy, proof of a goblin slain.',
     type: 'quest',
     value: 0,
+    rarity: 'common',
   },
   wolf_pelt: {
     id: 'wolf_pelt',
@@ -66,6 +93,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     description: 'Thick grey fur, still warm to the touch.',
     type: 'quest',
     value: 5,
+    rarity: 'common',
   },
   ancient_key: {
     id: 'ancient_key',
@@ -73,6 +101,7 @@ export const ITEMS: Record<string, ItemTemplate> = {
     description: 'An ornate key covered in verdigris. It hums faintly.',
     type: 'quest',
     value: 0,
+    rarity: 'rare',
   },
   gold_coin: {
     id: 'gold_coin',
@@ -80,5 +109,13 @@ export const ITEMS: Record<string, ItemTemplate> = {
     description: 'A gleaming coin stamped with the crest of Eldermoor.',
     type: 'misc',
     value: 1,
+    rarity: 'common',
   },
 };
+
+export function formatItemName(itemId: string): string {
+  const item = ITEMS[itemId];
+  if (!item) return itemId;
+  const tag = item.rarity && item.rarity !== 'common' ? `[${item.rarity}] ` : '';
+  return `${tag}${item.name}`;
+}

@@ -27,7 +27,7 @@
       "zone": "Eldermoor",
       "mapX": 3,
       "mapY": 2,
-      "exits": { "west": "eldermoor_square" },
+      "exits": { "west": "eldermoor_square", "east": "eldermoor_guild_hall" },
       "npcs": ["marta_baker"],
       "items": ["health_potion"]
     },
@@ -99,8 +99,47 @@
       "zone": "Whispering Woods",
       "mapX": 3,
       "mapY": 4,
-      "exits": { "north": "whispering_woods_clearing", "down": "shrine_vault" },
+      "exits": { "north": "whispering_woods_clearing", "down": "crypt_stairs" },
       "items": ["ancient_key"]
+    },
+    {
+      "id": "crypt_stairs",
+      "name": "Crypt Stairs",
+      "description": "Slippery steps descend into oppressive darkness. The air smells of dust and decay.",
+      "zone": "Crypt of Ash",
+      "mapX": 3,
+      "mapY": 6,
+      "exits": { "up": "abandoned_shrine", "south": "crypt_hall" },
+      "mobs": ["crypt_skeleton"]
+    },
+    {
+      "id": "crypt_hall",
+      "name": "Hall of Forgotten Kings",
+      "description": "Sarcophagi line the walls. Faded tapestries depict a kingdom lost to time.",
+      "zone": "Crypt of Ash",
+      "mapX": 3,
+      "mapY": 7,
+      "exits": { "north": "crypt_stairs", "south": "crypt_tomb" },
+      "mobs": ["crypt_skeleton", "crypt_warden"]
+    },
+    {
+      "id": "crypt_tomb",
+      "name": "Tomb of the Lich King",
+      "description": "A throne of bone dominates the chamber. The Lich King rises at your intrusion.",
+      "zone": "Crypt of Ash",
+      "mapX": 3,
+      "mapY": 8,
+      "exits": { "north": "crypt_hall" },
+      "mobs": ["lich_king"]
+    },
+    {
+      "id": "eldermoor_guild_hall",
+      "name": "Adventurers' Guild Hall",
+      "description": "Trophies and wanted posters adorn the walls. Heroes gather here to form guilds.",
+      "zone": "Eldermoor",
+      "mapX": 4,
+      "mapY": 2,
+      "exits": { "west": "eldermoor_bakery" }
     },
     {
       "id": "shrine_vault",
@@ -304,6 +343,49 @@
       "loot": [{ "itemId": "mana_potion", "chance": 0.7 }, { "itemId": "chainmail", "chance": 0.2 }],
       "hostile": true,
       "respawnSeconds": 600
+    },
+    {
+      "id": "crypt_skeleton",
+      "name": "Crypt Skeleton",
+      "description": "Bones animated by lingering malice, clad in tarnished armor.",
+      "level": 5,
+      "hp": 50,
+      "attack": 14,
+      "defense": 6,
+      "xp": 60,
+      "gold": { "min": 3, "max": 12 },
+      "hostile": true,
+      "respawnSeconds": 90
+    },
+    {
+      "id": "crypt_warden",
+      "name": "Crypt Warden",
+      "description": "An armored sentinel wreathed in pale flame.",
+      "level": 7,
+      "hp": 100,
+      "attack": 20,
+      "defense": 12,
+      "xp": 150,
+      "gold": { "min": 10, "max": 25 },
+      "loot": [{ "itemId": "shadow_dagger", "chance": 0.15 }],
+      "hostile": true,
+      "elite": true,
+      "respawnSeconds": 300
+    },
+    {
+      "id": "lich_king",
+      "name": "Malachar the Lich King",
+      "description": "A skeletal monarch crowned with a halo of dark magic.",
+      "level": 10,
+      "hp": 200,
+      "attack": 30,
+      "defense": 15,
+      "xp": 500,
+      "gold": { "min": 50, "max": 100 },
+      "loot": [{ "itemId": "plate_of_the_lich", "chance": 0.35 }, { "itemId": "shadow_dagger", "chance": 0.5 }],
+      "hostile": true,
+      "boss": true,
+      "respawnSeconds": 900
     }
   ],
   "npcs": [

@@ -4,6 +4,7 @@ import type { StoredPlayer } from '../db/database.js';
 import { ITEMS } from './items.js';
 import { CLASSES, xpForLevel } from './types.js';
 import type { World } from './world.js';
+import { findGuildByMember } from './guilds.js';
 import type { QuestProgress } from './quests.js';
 
 export class PlayerSession {
@@ -13,6 +14,7 @@ export class PlayerSession {
   pvpTarget: string | null = null;
   inDuel = false;
   partyLeader: string | null = null;
+  searchedRooms = new Set<string>();
   authenticated = false;
 
   get inCombat(): boolean {
@@ -124,6 +126,8 @@ export class PlayerSession {
       inCombat: this.inCombat,
       partyLeader: this.partyLeader ?? undefined,
       inDuel: this.inDuel,
+      title: this.data.title ?? undefined,
+      guildName: findGuildByMember(this.username)?.name,
     };
   }
 

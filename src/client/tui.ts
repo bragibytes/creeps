@@ -15,6 +15,9 @@ const STYLE_TAGS: Record<OutputStyle, string> = {
   death: 'red-bold',
   party: 'blue',
   trade: 'yellow',
+  global: 'magenta',
+  emote: 'cyan',
+  epic: 'magenta-bold',
 };
 
 const CLASS_LABELS: Record<ClassName, string> = {
@@ -119,6 +122,7 @@ export function createTuiClient(): GameClientUI {
   let onlinePlayers: OnlinePlayer[] = [];
   let lastRoom: RoomView | null = null;
   let inCombat = false;
+  let tickerText = '';
 
   function renderHeader(): void {
     if (!currentStats) {
@@ -137,6 +141,8 @@ export function createTuiClient(): GameClientUI {
     if (inCombat) tags.push('{red-fg}{bold}⚔{/}');
     if (p.inDuel) tags.push('{red-fg}DUEL{/}');
     if (p.partyLeader) tags.push('{blue-fg}PTY{/}');
+    if (p.title) tags.push(`{yellow-fg}"${p.title}"{/}`);
+    if (p.guildName) tags.push(`{blue-fg}<${p.guildName}>{/}`);
 
     header.setContent(
       `{bold}${p.username}{/}  {cyan-fg}Lv.${p.level}{/} {white-fg}${cls}{/}` +
@@ -188,6 +194,9 @@ export function createTuiClient(): GameClientUI {
       if (onlinePlayers.length > 8) lines.push(`{gray-fg}+${onlinePlayers.length - 8} more{/}`);
     }
 
+    if (tickerText) {
+      lines.push('', '{gray-fg}› ' + tickerText + '{/}');
+    }
     lines.push('', '─'.repeat(24), HELP_HINTS);
     sidebar.setContent(lines.join('\n'));
     screen.render();
@@ -242,6 +251,19 @@ export function createTuiClient(): GameClientUI {
     showOnline(players) {
       onlinePlayers = players;
       renderSidebar();
+    },
+
+    showTicker(text) {
+      tickerText = text;
+      renderSidebar();
+    },
+
+    showMotd(text) {
+      appendLog(`{cyan-fg}{bold}=== Message of the Day ==={/}\n${text}`, 'system');
+    },
+
+    bell() {
+      process.stdout.write('\x07');
     },
 
     flash(color) {

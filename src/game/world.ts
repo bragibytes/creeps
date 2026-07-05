@@ -10,6 +10,7 @@ export interface LiveMob {
   templateId: string;
   hp: number;
   maxHp: number;
+  elite?: boolean;
 }
 
 export interface LiveRoom {
@@ -53,7 +54,9 @@ export class World {
     for (const [id, template] of this.rooms) {
       const liveMobs: LiveMob[] = (template.mobs ?? []).map((mobId) => {
         const tmpl = this.mobs.get(mobId)!;
-        return { instanceId: nextMobId(), templateId: mobId, hp: tmpl.hp, maxHp: tmpl.hp };
+        const scale = tmpl.elite ? 1.5 : 1;
+        const hp = Math.floor(tmpl.hp * scale);
+        return { instanceId: nextMobId(), templateId: mobId, hp, maxHp: hp, elite: tmpl.elite };
       });
       this.liveRooms.set(id, {
         template,
@@ -92,11 +95,14 @@ export class World {
       const template = this.rooms.get(roomId);
       const maxCount = (template?.mobs ?? []).filter((id) => id === templateId).length;
       if (count < maxCount) {
+        const scale = tmpl.elite ? 1.5 : 1;
+        const hp = Math.floor(tmpl.hp * scale);
         room.mobs.push({
           instanceId: nextMobId(),
           templateId,
-          hp: tmpl.hp,
-          maxHp: tmpl.hp,
+          hp,
+          maxHp: hp,
+          elite: tmpl.elite,
         });
       }
     }, tmpl.respawnSeconds * 1000);

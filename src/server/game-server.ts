@@ -1,21 +1,26 @@
-import { watch } from 'fs';
+import { readFileSync, existsSync, watch } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer, WebSocket } from 'ws';
-import type { ClientMessage, OnlinePlayer, ServerMessage } from '../protocol/messages.js';
+import type { ClientMessage, OnlinePlayer, OutputStyle, ServerMessage } from '../protocol/messages.js';
 import { initDatabase, findPlayer, createPlayer, savePlayer, hashPassword, verifyPassword } from '../db/database.js';
 import { backupPlayersJson } from '../db/backup.js';
+import { initGuilds, findGuildByMember } from '../game/guilds.js';
 import { World } from '../game/world.js';
 import { PlayerSession } from '../game/player.js';
 import { CommandHandler } from '../game/commands.js';
 import { PartyManager } from '../game/party.js';
 import { TradeManager } from '../game/trade.js';
 import { DuelManager } from '../game/duel.js';
+import { WorldEventManager } from '../game/events.js';
 import { CLASSES } from '../game/types.js';
 
 const WORLD_PATH = fileURLToPath(new URL('../data/world.json', import.meta.url));
 const DATA_DIR = process.env.DATA_DIR ?? fileURLToPath(new URL('../../data', import.meta.url));
 const STORE_PATH = join(DATA_DIR, 'players.json');
+const MOTD = process.env.MOTD ?? (existsSync(join(DATA_DIR, 'motd.txt'))
+  ? readFileSync(join(DATA_DIR, 'motd.txt'), 'utf-8').trim()
+  : 'Welcome to the Realm of Echoes! Type help for commands.');
 
 export class GameServer {
   private wss: WebSocketServer;
@@ -25,13 +30,16 @@ export class GameServer {
   private party = new PartyManager();
   private trade = new TradeManager();
   private duel = new DuelManager();
+  private events: WorldEventManager;
   private commands: CommandHandler;
   private saveInterval: ReturnType<typeof setInterval>;
   private backupInterval: ReturnType<typeof setInterval>;
 
   constructor(port: number) {
     initDatabase();
+    initGuilds();
     this.wss = new WebSocketServer({ port, host: '0.0.0.0' });
+    this.events = new WorldEventManager(this.world, (text) => this.globalBroadcast(text, 'global'));
     this.commands = new CommandHandler(
       this.world,
       this.players,
@@ -43,6 +51,9 @@ export class GameServer {
       (roomId, text, exclude) => this.roomNotify(roomId, text, exclude),
       () => this.broadcastOnline(),
       (p, color) => this.send(p, { type: 'flash', color }),
+      (text, style) => this.globalBroadcast(text, style),
+      (text) => this.ticker(text),
+      (guildId, text) => this.guildBroadcast(guildId, text),
     );
 
     this.saveInterval = setInterval(() => this.saveAll(), 30_000);
@@ -54,7 +65,7 @@ export class GameServer {
         console.log(`World reloaded: ${logs.length} changes`);
       });
     } catch {
-      // non-fatal if watch unavailable
+      // non-fatal
     }
 
     this.wss.on('connection', (ws) => this.onConnect(ws));
@@ -95,6 +106,16 @@ export class GameServer {
     }
   }
 
+  private postLogin(session: PlayerSession, welcome: string): void {
+    this.send(session, { type: 'output', text: welcome, style: 'system' });
+    this.send(session, { type: 'motd', text: MOTD });
+    this.roomNotify(session.roomId, `${session.username} enters the realm.`);
+    this.commands.handle(session, 'look');
+    this.send(session, { type: 'stats', player: session.toSnapshot(this.world) });
+    this.broadcastOnline();
+    this.send(session, { type: 'prompt', text: '>' });
+  }
+
   private handleLogin(ws: WebSocket, username: string, password: string): void {
     const stored = findPlayer(username);
     if (!stored || !verifyPassword(password, stored.passwordHash)) {
@@ -112,13 +133,7 @@ export class GameServer {
     session.authenticated = true;
     this.players.set(stored.username.toLowerCase(), session);
     this.sessions.set(ws, session);
-
-    this.send(session, { type: 'output', text: `Welcome back, ${stored.username}!`, style: 'system' });
-    this.roomNotify(session.roomId, `${stored.username} enters the realm.`);
-    this.commands.handle(session, 'look');
-    this.send(session, { type: 'stats', player: session.toSnapshot(this.world) });
-    this.broadcastOnline();
-    this.send(session, { type: 'prompt', text: '>' });
+    this.postLogin(session, `Welcome back, ${stored.username}!`);
   }
 
   private handleRegister(
@@ -169,12 +184,7 @@ export class GameServer {
       text: `Character created! You are ${cls.displayName}.\n${cls.description}`,
       style: 'system',
     });
-    this.send(session, { type: 'output', text: 'Type "help" for commands. Good luck, adventurer!', style: 'system' });
-    this.roomNotify(session.roomId, `${username} enters the realm for the first time.`);
-    this.commands.handle(session, 'look');
-    this.send(session, { type: 'stats', player: session.toSnapshot(this.world) });
-    this.broadcastOnline();
-    this.send(session, { type: 'prompt', text: '>' });
+    this.postLogin(session, 'Type "help" for commands. Good luck, adventurer!');
   }
 
   private onDisconnect(ws: WebSocket): void {
@@ -215,6 +225,32 @@ export class GameServer {
     }
   }
 
+  private globalBroadcast(text: string, style: OutputStyle = 'global'): void {
+    for (const p of this.players.values()) {
+      if (p.authenticated) {
+        this.send(p, { type: 'output', text, style });
+      }
+    }
+  }
+
+  private guildBroadcast(guildId: string, text: string): void {
+    for (const p of this.players.values()) {
+      if (!p.authenticated) continue;
+      const guild = findGuildByMember(p.username);
+      if (guild?.id === guildId) {
+        this.send(p, { type: 'output', text, style: 'party' });
+      }
+    }
+  }
+
+  private ticker(text: string): void {
+    for (const p of this.players.values()) {
+      if (p.authenticated) {
+        this.sendRaw(p.ws, { type: 'ticker', text });
+      }
+    }
+  }
+
   private send(player: PlayerSession, msg: ServerMessage): void {
     this.sendRaw(player.ws, msg);
     if (msg.type === 'output' || msg.type === 'error') {
@@ -249,6 +285,7 @@ export class GameServer {
   shutdown(): void {
     clearInterval(this.saveInterval);
     clearInterval(this.backupInterval);
+    this.events.stop();
     this.saveAll();
     backupPlayersJson(DATA_DIR, STORE_PATH);
     this.wss.close();

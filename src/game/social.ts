@@ -5,6 +5,14 @@ import type { TradeManager } from './trade.js';
 import type { DuelManager } from './duel.js';
 import { CRAFT_RECIPES } from './types.js';
 import { isAdmin } from './admin.js';
+import {
+  createGuild,
+  findGuildByMember,
+  findGuildByName,
+  inviteToGuild,
+  leaveGuild,
+  isLeader,
+} from './guilds.js';
 import type { World } from './world.js';
 import type { SendFn } from './commands.js';
 
@@ -302,6 +310,75 @@ export function handleAdminCommand(
     default:
       send(player, { type: 'output', text: 'Admin: teleport <room> | spawn <mob> | setlevel <n> | reload', style: 'system' });
   }
+}
+
+export function handleGuildCommand(
+  player: PlayerSession,
+  args: string[],
+  players: Map<string, PlayerSession>,
+  send: SendFn,
+  globalGuildChat: (guildId: string, text: string, exclude?: string) => void,
+): void {
+  const sub = args[0]?.toLowerCase();
+  const rest = args.slice(1).join(' ');
+
+  if (sub === 'create' && rest) {
+    const result = createGuild(player.username, rest);
+    if (typeof result === 'string') {
+      send(player, { type: 'output', text: result, style: 'party' });
+      return;
+    }
+    player.data.guildId = result.id;
+    send(player, { type: 'output', text: `Guild "${result.name}" founded!`, style: 'party' });
+    return;
+  }
+
+  if (sub === 'invite' && rest) {
+    const guild = findGuildByMember(player.username);
+    if (!guild || !isLeader(guild, player.username)) {
+      send(player, { type: 'output', text: 'Only guild leaders can invite.', style: 'party' });
+      return;
+    }
+    const target = findPlayer(players, player, rest);
+    if (!target) {
+      send(player, { type: 'output', text: `No player "${rest}" found.`, style: 'party' });
+      return;
+    }
+    inviteToGuild(guild, target.username);
+    target.data.guildId = guild.id;
+    send(player, { type: 'output', text: `Invited ${target.username} to ${guild.name}.`, style: 'party' });
+    send(target, { type: 'output', text: `You joined guild ${guild.name}!`, style: 'party' });
+    return;
+  }
+
+  if (sub === 'leave') {
+    const guild = leaveGuild(player.username);
+    player.data.guildId = null;
+    send(player, { type: 'output', text: guild ? `You left ${guild.name}.` : 'You left the guild.', style: 'party' });
+    return;
+  }
+
+  if (sub === 'say' && rest) {
+    const guild = findGuildByMember(player.username);
+    if (!guild) {
+      send(player, { type: 'output', text: 'You are not in a guild.', style: 'party' });
+      return;
+    }
+    globalGuildChat(guild.id, `[${guild.name}] ${player.username}: ${rest}`);
+    return;
+  }
+
+  const guild = findGuildByMember(player.username) ?? (sub ? findGuildByName(sub) : null);
+  if (!guild) {
+    send(player, { type: 'output', text: 'No guild. Visit the Guild Hall and: guild create <name>', style: 'party' });
+    return;
+  }
+  const members = guild.members.map((m) => players.get(m)?.username ?? m).join(', ');
+  send(player, {
+    type: 'output',
+    text: `[${guild.name}] Leader: ${guild.leader}\nMembers: ${members}`,
+    style: 'party',
+  });
 }
 
 function findPlayer(

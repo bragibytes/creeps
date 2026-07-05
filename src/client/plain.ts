@@ -12,6 +12,9 @@ const STYLES: Record<OutputStyle, (s: string) => string> = {
   death: chalk.red.bold,
   party: chalk.blue,
   trade: chalk.hex('#FFA500'),
+  global: chalk.magenta,
+  emote: chalk.cyan.italic,
+  epic: chalk.magenta.bold,
 };
 
 export interface RoomView {
@@ -31,7 +34,10 @@ export interface GameClientUI {
   showRoom(room: RoomView): void;
   showStats(player: PlayerSnapshot): void;
   showOnline(players: OnlinePlayer[]): void;
+  showTicker(text: string): void;
+  showMotd(text: string): void;
   flash(color: 'red' | 'yellow' | 'green'): void;
+  bell(): void;
   showClassSelect(): void;
   showError(text: string): void;
   setPrompt(text: string, hidden?: boolean): void;
@@ -100,7 +106,19 @@ export function createPlainClient(): GameClientUI {
       }
     },
 
+    showTicker(text) {
+      console.log(chalk.dim(`› ${text}`));
+    },
+
+    showMotd(text) {
+      console.log(chalk.cyan(`\n=== MOTD ===\n${text}\n`));
+    },
+
     flash() {},
+
+    bell() {
+      process.stdout.write('\x07');
+    },
 
     showClassSelect() {
       console.log(chalk.cyan('\nChoose class: warrior | mage | rogue\n'));

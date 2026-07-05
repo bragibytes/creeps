@@ -1,4 +1,4 @@
-import { ITEMS } from './items.js';
+import { ITEMS, formatItemName } from './items.js';
 import type { PlayerSession } from './player.js';
 import type { LiveMob, World } from './world.js';
 import { CLASSES } from './types.js';
@@ -161,14 +161,22 @@ function handleMobDeath(
   player.combatTarget = null;
   player.pvpTarget = null;
 
-  messages.push(`*** ${tmpl.name} has been slain! ***`);
+  const eliteTag = mob.elite || tmpl.elite ? ' ***ELITE***' : '';
+  const bossTag = tmpl.boss ? ' ***BOSS***' : '';
+  messages.push(`*** ${tmpl.name}${eliteTag}${bossTag} has been slain! ***`);
+  player.data.kills++;
+  if (mob.templateId.includes('goblin')) {
+    player.data.goblinKills = (player.data.goblinKills ?? 0) + 1;
+  }
+
+  const xpMult = mob.elite || tmpl.elite ? 1.5 : tmpl.boss ? 2 : 1;
   const gold = tmpl.gold.min + Math.floor(Math.random() * (tmpl.gold.max - tmpl.gold.min + 1));
   if (gold > 0) {
     player.data.gold += gold;
     messages.push(`You loot ${gold} gold.`);
   }
 
-  messages.push(...player.addXp(tmpl.xp));
+  messages.push(...player.addXp(Math.floor(tmpl.xp * xpMult)));
   if (partyPeers.length > 0) {
     const share = Math.floor(tmpl.xp / partyPeers.length);
     for (const peer of partyPeers) {
@@ -183,7 +191,10 @@ function handleMobDeath(
     for (const drop of tmpl.loot) {
       if (Math.random() < drop.chance) {
         player.addItem(drop.itemId);
-        messages.push(`You found: ${ITEMS[drop.itemId]?.name ?? drop.itemId}`);
+        const item = ITEMS[drop.itemId];
+        const lootStyle = item?.rarity === 'epic' || item?.rarity === 'rare' ? 'epic' : 'loot';
+        messages.push(`You found: ${formatItemName(drop.itemId)}`);
+        void lootStyle;
       }
     }
   }
@@ -259,6 +270,7 @@ export function pvpVictoryXp(victimLevel: number): number {
 }
 
 export function handlePlayerDeath(player: PlayerSession, killer?: string): string[] {
+  player.data.deaths++;
   player.clearCombat();
   player.data.hp = Math.floor(player.data.maxHp * 0.5);
   player.data.gold = Math.max(0, player.data.gold - Math.floor(player.data.gold * 0.1));
